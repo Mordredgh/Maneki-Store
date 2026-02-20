@@ -498,7 +498,7 @@ body, .sidebar, .bg-white, input, textarea, select, table {
         </div>
         <div>
             <p class="text-sm font-semibold text-gray-800 dark-text">Usuario Admin</p>
-            <p class="text-xs text-gray-500">admin@maneki.com</p>
+            <p class="text-xs text-gray-500"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f59491989c9bb598949b909e9cdb969a98">[email&#160;protected]</a></p>
         </div>
     </div>
     <button onclick="toggleDarkMode()" id="darkModeBtn"
@@ -2197,7 +2197,7 @@ body, .sidebar, .bg-white, input, textarea, select, table {
         </div>
     </div>
     
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // ============================================================
 // SUPABASE CONFIG
 // ============================================================
@@ -5551,10 +5551,20 @@ function renderKanban(activos) {
             const diasEntrega = p.entrega ? Math.ceil((new Date(p.entrega) - new Date()) / 86400000) : null;
             const urgente = diasEntrega !== null && diasEntrega <= 2 && diasEntrega >= 0;
 
-            const contactoBtns = [
-                p.telefono ? `<button onclick="abrirWhatsAppPedido(${p.id})" class="text-green-500 hover:text-green-600" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>` : '',
-                p.redes ? `<button onclick="abrirMessengerPedido(${p.id})" class="text-blue-500 hover:text-blue-600" title="Messenger"><i class="fab fa-facebook-messenger"></i></button>` : ''
-            ].join('');
+            const btnWA = p.telefono
+                ? `<button onclick="event.stopPropagation();abrirWhatsAppPedido(${p.id})"
+                    class="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+                    style="background:#25D366;" title="Enviar WhatsApp">
+                    <i class="fab fa-whatsapp"></i> WA
+                  </button>`
+                : '';
+            const btnFBKanban = p.redes
+                ? `<button onclick="event.stopPropagation();abrirMessengerPedido(${p.id})"
+                    class="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+                    style="background:#0084ff;" title="Messenger">
+                    <i class="fab fa-facebook-messenger"></i>
+                  </button>`
+                : '';
 
             return `<div class="kanban-card bg-white rounded-xl p-3 shadow-sm border-l-4 cursor-grab select-none group"
                 style="border-left-color: ${vencido ? '#EF4444' : urgente ? '#F97316' : '#C5A572'};"
@@ -5565,13 +5575,13 @@ function renderKanban(activos) {
                 <!-- Folio + acciones -->
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-bold" style="color:#C5A572;">${p.folio}</span>
-                    <div class="flex gap-1.5 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                        ${contactoBtns}
-                        <button onclick="openPedidoModal(${p.id})" class="text-yellow-500 hover:text-yellow-600" title="Editar"><i class="fas fa-edit"></i></button>
-                        <button onclick="openCancelPedidoModal(${p.id})" class="text-red-400 hover:text-red-600" title="Cancelar pedido">
-                        <i class="fas fa-times-circle"></i>
-                        </button>
-                        <button onclick="moverSiguienteEstado(${p.id})" class="hover:text-gray-800 text-gray-400" title="Avanzar estado"><i class="fas fa-arrow-right"></i></button>
+                    <div class="flex gap-1 items-center">
+                        ${btnWA}${btnFBKanban}
+                        <div class="flex gap-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                            <button onclick="openPedidoModal(${p.id})" class="text-yellow-500 hover:text-yellow-600" title="Editar"><i class="fas fa-edit"></i></button>
+                            <button onclick="openCancelPedidoModal(${p.id})" class="text-red-400 hover:text-red-600" title="Cancelar pedido"><i class="fas fa-times-circle"></i></button>
+                            <button onclick="moverSiguienteEstado(${p.id})" class="hover:text-gray-800 text-gray-400" title="Avanzar estado"><i class="fas fa-arrow-right"></i></button>
+                        </div>
                     </div>
                 </div>
 
@@ -6637,84 +6647,225 @@ window.addEventListener('load', function() {
 
 <!-- MODAL WHATSAPP PEDIDO -->
 <div id="whatsappPedidoModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 animate-fade-in">
-        <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#25D366;">
-                    <i class="fab fa-whatsapp text-white text-lg"></i>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-fade-in overflow-hidden">
+
+        <!-- Header verde -->
+        <div class="flex justify-between items-center px-6 py-4" style="background:linear-gradient(135deg,#25D366,#128C7E);">
+            <div class="flex items-center gap-3">
+                <i class="fab fa-whatsapp text-white text-2xl"></i>
+                <div>
+                    <h3 class="text-base font-bold text-white">Mensaje de WhatsApp</h3>
+                    <p class="text-xs text-green-100" id="waClienteNombre">—</p>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800">Mensaje de WhatsApp</h3>
             </div>
-            <button onclick="cerrarWhatsAppModal()" class="text-gray-400 hover:text-gray-600 text-xl"><i class="fas fa-times"></i></button>
+            <button onclick="cerrarWhatsAppModal()" class="text-white opacity-70 hover:opacity-100 text-xl"><i class="fas fa-times"></i></button>
         </div>
 
-        <div class="mb-3">
-            <label class="block text-sm font-semibold text-gray-600 mb-1">Número de teléfono</label>
-            <div class="flex gap-2">
-                <input type="text" id="waTelefono" placeholder="Ej: 8112345678"
-                    class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
-                <span class="text-xs text-gray-400 self-center">MX (+52)</span>
+        <div class="p-6">
+            <!-- Teléfono -->
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Número de teléfono (MX)</label>
+                <div class="flex gap-2 items-center">
+                    <span class="px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 font-semibold">+52</span>
+                    <input type="tel" id="waTelefono" placeholder="8112345678" maxlength="10"
+                        class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                </div>
             </div>
-        </div>
 
-        <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-600 mb-1">Mensaje <span class="text-gray-400 font-normal">(editable)</span></label>
-            <textarea id="waMensaje" rows="9"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none font-mono leading-relaxed"></textarea>
-        </div>
+            <!-- Plantillas rápidas -->
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Plantilla</label>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="aplicarPlantillaWA('confirmacion')" id="btnTplConfirmacion"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all"
+                        style="border-color:#25D366;background:#f0fdf4;color:#16a34a;">
+                        ✅ Confirmación
+                    </button>
+                    <button onclick="aplicarPlantillaWA('recordatorio')" id="btnTplRecordatorio"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-gray-200 text-gray-600 bg-white transition-all hover:border-yellow-400">
+                        🔔 Recordatorio
+                    </button>
+                    <button onclick="aplicarPlantillaWA('entrega')" id="btnTplEntrega"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-gray-200 text-gray-600 bg-white transition-all hover:border-blue-400">
+                        📦 Listo para entregar
+                    </button>
+                    <button onclick="aplicarPlantillaWA('cobro')" id="btnTplCobro"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-gray-200 text-gray-600 bg-white transition-all hover:border-red-400">
+                        💳 Cobro pendiente
+                    </button>
+                </div>
+            </div>
 
-        <div class="flex gap-3">
-            <button onclick="cerrarWhatsAppModal()" class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50">
-                Cancelar
-            </button>
-            <button onclick="enviarWhatsApp()" class="flex-1 px-4 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style="background:#25D366;">
-                <i class="fab fa-whatsapp"></i> Abrir en WhatsApp
-            </button>
+            <!-- Mensaje -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Mensaje <span class="normal-case font-normal text-gray-400">(editable)</span></label>
+                    <button onclick="copiarMensajeWA()" id="btnCopiarWA"
+                        class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                </div>
+                <textarea id="waMensaje" rows="9"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none leading-relaxed"
+                    style="font-family: monospace;"></textarea>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3">
+                <button onclick="cerrarWhatsAppModal()"
+                    class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+                    Cancelar
+                </button>
+                <button onclick="enviarWhatsApp()"
+                    class="flex-1 px-4 py-2.5 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                    style="background:#25D366;">
+                    <i class="fab fa-whatsapp"></i> Abrir en WhatsApp
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+// ══════════════════════════════════════════════
+//  WHATSAPP — Variables de estado del modal
+// ══════════════════════════════════════════════
+let _waPedidoActual = null;  // pedido abierto en el modal
+
+// ── Plantillas de mensaje ──────────────────────
+function _waMensajes(p) {
+    const nombre   = p.cliente || 'cliente';
+    const folio    = p.folio   || '—';
+    const concepto = p.concepto || '—';
+    const entrega  = p.entrega  || 'por confirmar';
+    const total    = Number(p.total  || 0);
+    const anticipo = Number(p.anticipo || 0);
+    const resta    = Number(p.resta  ?? (total - anticipo));
+
+    // Lista de productos si tiene
+    let listaProductos = '';
+    if (p.productosInventario && p.productosInventario.length > 0) {
+        listaProductos = '\n🛍️ Productos:\n' +
+            p.productosInventario.map(i =>
+                `   • ${i.name || i.nombre || ''}${i.quantity ? ' x' + i.quantity : ''} — $${Number(i.price || i.precio || 0).toFixed(2)}`
+            ).join('\n') + '\n';
+    }
+
+    const pagoLinea = resta > 0
+        ? `💳 Saldo pendiente: *$${resta.toFixed(2)}*`
+        : `✅ Pedido *liquidado*`;
+
+    return {
+        confirmacion:
+`¡Hola ${nombre}! 👋
+
+Te escribimos de *Maneki Store* 🐱 para confirmarte tu pedido:
+
+📋 Folio: *${folio}*
+📦 Concepto: ${concepto}${listaProductos}
+📅 Fecha de entrega: *${entrega}*
+💰 Total: *$${total.toFixed(2)}*
+${pagoLinea}
+${p.notas ? '\n📝 ' + p.notas : ''}
+
+¡Gracias por tu confianza! ✨`,
+
+        recordatorio:
+`¡Hola ${nombre}! 🔔
+
+Solo un recordatorio de *Maneki Store* 🐱:
+
+Tu pedido *${folio}* tiene fecha de entrega el *${entrega}*.
+${resta > 0 ? `\n💳 Recuerda que tienes un saldo pendiente de *$${resta.toFixed(2)}*.\n` : ''}
+¡Cualquier duda, aquí estamos! 😊`,
+
+        entrega:
+`¡Hola ${nombre}! 📦
+
+¡Buenas noticias! Tu pedido de *Maneki Store* 🐱 ya está *listo para entregarse*:
+
+📋 Folio: *${folio}*
+📦 ${concepto}
+${resta > 0 ? `\n💳 Saldo al recoger: *$${resta.toFixed(2)}*\n` : '\n✅ Pedido liquidado\n'}
+Coordinemos la entrega, ¿cuándo te queda bien? 😊`,
+
+        cobro:
+`¡Hola ${nombre}! 💳
+
+Te escribimos de *Maneki Store* 🐱 sobre tu pedido *${folio}*:
+
+💰 Total del pedido: *$${total.toFixed(2)}*
+✅ Ya abonado: *$${anticipo.toFixed(2)}*
+⚠️ Saldo pendiente: *$${resta.toFixed(2)}*
+
+¿Cómo prefieres hacer el pago? ¡Estamos para ayudarte! 😊`
+    };
+}
+
 function abrirWhatsAppPedido(id) {
     const p = pedidos.find(x => x.id === id);
     if (!p) return;
+    _waPedidoActual = p;
 
-    const modal = document.getElementById('whatsappPedidoModal');
-    const telInput = document.getElementById('waTelefono');
-    const msgArea = document.getElementById('waMensaje');
+    // Llenar encabezado del modal
+    document.getElementById('waClienteNombre').textContent = p.cliente || '—';
+    document.getElementById('waTelefono').value = p.telefono ? p.telefono.replace(/\D/g, '') : '';
 
-    // Pre-llenar teléfono si existe
-    telInput.value = p.telefono ? p.telefono.replace(/\D/g, '') : '';
+    // Plantilla por defecto: confirmación
+    aplicarPlantillaWA('confirmacion');
 
-    // Construir mensaje pre-armado
-    const entrega = p.entrega || 'por confirmar';
-    const resta = p.resta > 0 ? `\n💳 Saldo pendiente: $${p.resta.toFixed(2)}` : '\n✅ Pedido liquidado';
-    const mensaje =
-`¡Hola ${p.cliente}! 👋
+    document.getElementById('whatsappPedidoModal').style.display = 'flex';
+}
 
-Te escribimos de *Maneki Store* para confirmarte los detalles de tu pedido:
+function aplicarPlantillaWA(tipo) {
+    if (!_waPedidoActual) return;
+    const mensajes = _waMensajes(_waPedidoActual);
+    document.getElementById('waMensaje').value = mensajes[tipo] || '';
 
-📋 Folio: *${p.folio}*
-📦 Concepto: ${p.concepto}
-📅 Fecha de entrega: *${entrega}*
-💰 Total: $${p.total.toFixed(2)}${resta}
+    // Marcar botón activo
+    ['confirmacion','recordatorio','entrega','cobro'].forEach(t => {
+        const btn = document.getElementById('btnTpl' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!btn) return;
+        if (t === tipo) {
+            btn.style.cssText = 'border-color:#25D366;background:#f0fdf4;color:#16a34a;';
+        } else {
+            btn.style.cssText = 'border-color:#e5e7eb;background:white;color:#4b5563;';
+        }
+    });
+}
 
-${p.notas ? '📝 Nota: ' + p.notas + '\n' : ''}¡Gracias por tu confianza! 🐱✨`;
-
-    msgArea.value = mensaje;
-    modal.style.display = 'flex';
+function copiarMensajeWA() {
+    const msg = document.getElementById('waMensaje').value;
+    if (!msg) return;
+    navigator.clipboard.writeText(msg).then(() => {
+        const btn = document.getElementById('btnCopiarWA');
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+        btn.style.cssText = 'border-color:#25D366;background:#f0fdf4;color:#16a34a;';
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.style.cssText = '';
+        }, 2000);
+    }).catch(() => {
+        // Fallback para navegadores sin clipboard API
+        const ta = document.getElementById('waMensaje');
+        ta.select();
+        document.execCommand('copy');
+        alert('Mensaje copiado al portapapeles');
+    });
 }
 
 function cerrarWhatsAppModal() {
     document.getElementById('whatsappPedidoModal').style.display = 'none';
+    _waPedidoActual = null;
 }
 
 function enviarWhatsApp() {
     const tel = document.getElementById('waTelefono').value.replace(/\D/g, '');
     const msg = document.getElementById('waMensaje').value.trim();
 
-    if (!tel) {
-        alert('Por favor ingresa un número de teléfono.');
+    if (!tel || tel.length < 10) {
+        alert('Por favor ingresa un número de teléfono válido (10 dígitos).');
         document.getElementById('waTelefono').focus();
         return;
     }
@@ -6724,7 +6875,8 @@ function enviarWhatsApp() {
     }
 
     const numero = tel.startsWith('52') ? tel : '52' + tel;
-    const url = `https://web.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(msg)}`;
+    // wa.me funciona tanto en móvil como desktop (más universal que web.whatsapp.com)
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
     cerrarWhatsAppModal();
 }
@@ -6963,16 +7115,4 @@ function restaurarBackup() {
             alert('✅ Backup restaurado exitosamente. La página se recargará.');
             setTimeout(() => location.reload(), 500);
         } catch(err) {
-            alert('❌ Error al restaurar: ' + err.message);
-        }
-    })();
-}
-
-// Cerrar al hacer clic fuera
-document.getElementById('backupModal').addEventListener('click', function(e) {
-    if (e.target === this) cerrarBackupModal();
-});
-</script>
-
-</body>
-</html>
+            alert('❌ Error al restaurar: '
